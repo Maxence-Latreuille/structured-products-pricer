@@ -4,43 +4,36 @@ Pricing and structuring toolkit for equity structured products, built to reprodu
 the workflow of a structuring desk: design the payoff, solve for the coupon,
 analyse risks, and generate a client-ready term sheet.
 
-**[Live demo](lien-streamlit)** · **[Notebook walkthrough](notebooks/autocall_walkthrough.ipynb)**
-
-![demo](docs/demo.gif)
+> 🚧 **Status: work in progress.** Built step by step; see the roadmap below.
 
 ## Products
-| Product | Features |
-|---|---|
-| Reverse Convertible | Closed-form (BS) + Monte Carlo validation |
-| Autocall Phoenix | Autocall, memory coupon & capital-protection barriers |
-| Worst-of Autocall | Multi-asset, correlated GBM (Cholesky) |
-| Capital-Protected Note | Zero-coupon + call participation |
+| Product | Method | Status |
+|---|---|---|
+| European call (engine validation) | Black-Scholes closed form vs Monte Carlo | ✅ Done |
+| Reverse Convertible | Closed form (zero-coupon − put) + Monte Carlo validation | 🚧 In progress |
+| Autocall Phoenix | Autocall, memory coupon & capital-protection barriers | 📅 Planned |
+| Worst-of Autocall | Multi-asset correlated GBM (Cholesky) | 📅 Planned |
+| Capital-Protected Note | Zero-coupon + call participation | 📅 Planned |
 
-## Features
-- Monte Carlo pricing engine (vectorised NumPy, antithetic variates)
-- **Coupon solver**: finds the coupon that prices the note at par (100%)
-- Greeks (delta, gamma, vega, correlation sensitivity) via bumping with common random numbers
-- Market data retrieval (yfinance) and automatic PDF term sheet
-- Interactive Streamlit app
-
-## Key results
-- Coupon vs. autocall barrier / protection barrier
-- Worst-of: coupon increases as correlation decreases
-- Delta and gamma behaviour near the barrier at maturity
+## Roadmap
+- [x] Monte Carlo engine validated against Black-Scholes
+- [ ] Reverse Convertible: Monte Carlo vs closed-form check
+- [ ] Autocall Phoenix + **coupon solver** (coupon that prices the note at par)
+- [ ] Greeks (delta, gamma, vega) with common random numbers
+- [ ] Interactive Streamlit app (live demo)
+- [ ] Worst-of on 3 underlyings, correlation impact on the coupon
+- [ ] Market data (yfinance) and PDF term sheet generation
+- [ ] Skew / local volatility impact on autocall pricing
 
 ## Project structure
-    src/pricer/     models, payoffs, monte_carlo, greeks, solver
-    app/            Streamlit interface
-    notebooks/      walkthrough and analysis
-    tests/          pytest (MC vs closed-form checks)
+    src/pricer/     analytics (closed forms), monte_carlo, products, greeks, solver
+    tests/          pytest: Monte Carlo vs closed-form checks
+    notebooks/      walkthrough and analysis (coming)
+    app/            Streamlit interface (coming)
 
 ## Quickstart
     pip install -r requirements.txt
-    streamlit run app/main.py
-
-## Roadmap
-- [ ] Local volatility / skew impact on autocall pricing
-- [ ] Issuer credit spread and funding in the pricing
+    pytest -v
 
 ## Author
 Maxence Latreuille, École Centrale de Lyon × emlyon business school
