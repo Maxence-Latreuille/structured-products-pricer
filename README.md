@@ -9,7 +9,7 @@ analyse risks, and generate a client-ready term sheet.
 ## Products
 | Product | Method | Status |
 |---|---|---|
-| European call (engine validation) | Black-Scholes closed form vs Monte Carlo | ✅ Done |
+| European call & put | Black-Scholes closed form, Monte Carlo, put-call parity | ✅ Done |
 | Reverse Convertible | Closed form (zero-coupon − put) + Monte Carlo validation | 🚧 In progress |
 | Autocall Phoenix | Autocall, memory coupon & capital-protection barriers | 📅 Planned |
 | Worst-of Autocall | Multi-asset correlated GBM (Cholesky) | 📅 Planned |
