@@ -9,14 +9,14 @@ analyse risks, and generate a client-ready term sheet.
 ## Products
 | Product | Method | Status |
 |---|---|---|
-| European call (engine validation) | Black-Scholes closed form vs Monte Carlo | ✅ Done |
+| European call (engine validation) | Black-Scholes closed form vs Monte Carlo | 🚧 In progress |
 | Reverse Convertible | Closed form (zero-coupon − put) + Monte Carlo validation | 🚧 In progress |
 | Autocall Phoenix | Autocall, memory coupon & capital-protection barriers | 📅 Planned |
 | Worst-of Autocall | Multi-asset correlated GBM (Cholesky) | 📅 Planned |
 | Capital-Protected Note | Zero-coupon + call participation | 📅 Planned |
 
 ## Roadmap
-- [x] Monte Carlo engine validated against Black-Scholes
+- [ ] Monte Carlo engine validated against Black-Scholes
 - [ ] Reverse Convertible: Monte Carlo vs closed-form check
 - [ ] Autocall Phoenix + **coupon solver** (coupon that prices the note at par)
 - [ ] Greeks (delta, gamma, vega) with common random numbers
