@@ -5,7 +5,6 @@ from pricer.monte_carlo import mc_put
 
 PARAMS = dict(S0=100, K=100, T=1.0, r=0.03, sigma=0.2)
 
-
 def test_mc_put_matches_black_scholes():
     exact = bs_put(**PARAMS)
     price, std_error = mc_put(**PARAMS)
