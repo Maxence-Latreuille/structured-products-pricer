@@ -10,8 +10,8 @@ analyse risks, and generate a client-ready term sheet.
 | Product | Method | Status |
 |---|---|---|
 | European call & put | Black-Scholes closed form, Monte Carlo, put-call parity | ✅ Done |
-| Reverse Convertible | Closed form (zero-coupon − put) + Monte Carlo validation | 🚧 In progress |
-| Autocall Phoenix | Autocall, memory coupon & capital-protection barriers | 📅 Planned |
+| Reverse Convertible | Closed form (zero-coupon − put) + Monte Carlo validation | ✅ Done |
+| Autocall Phoenix | Autocall, memory coupon & capital-protection barriers | 🚧 In progress |
 | Worst-of Autocall | Multi-asset correlated GBM (Cholesky) | 📅 Planned |
 | Capital-Protected Note | Zero-coupon + call participation | 📅 Planned |
 
