@@ -15,3 +15,25 @@ def bs_put(S0, K, T, r, sigma):
     d2 = d1 - sigma * np.sqrt(T)
     # K*exp(-rT)*N(-d2): cash lent; S0*N(-d1): shares sold short
     return K*np.exp(-r*T)*norm.cdf(-d2) - S0*norm.cdf(-d1)
+
+def implied_volatility(price, S0, K, T, r, option_type="call"):
+    """Compute implied volatility from option price using bisection method."""
+    tol = 1e-6
+    max_iter = 100
+    low, high = 1e-5, 5.0  # reasonable bounds for volatility (0.001% to 500%)
+
+    for _ in range(max_iter):
+        mid = (low + high) / 2
+        if option_type == "call":
+            price_mid = bs_call(S0, K, T, r, mid)
+        else:
+            price_mid = bs_put(S0, K, T, r, mid)
+
+        if abs(price_mid - price) < tol:
+            return mid
+        elif price_mid < price:
+            low = mid
+        else:
+            high = mid
+
+    raise ValueError("Implied volatility not found within bounds.")
