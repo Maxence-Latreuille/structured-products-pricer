@@ -9,7 +9,7 @@ def simulate_terminal_prices(S0, T, r, sigma, n_paths=100_000, seed=23):
     Z = rng.standard_normal(n_paths) # tirages de n_paths v.a normales centrées réduites
     return S0 * np.exp((r - 0.5 * sigma**2) * T + sigma * np.sqrt(T) * Z)
 
-def mc_price(payoff_fn, S0, T, r, sigma, n_paths=100_000, seed=42):
+def mc_price(payoff_fn, S0, T, r, sigma, n_paths=100_000, seed=23):
     """Price any payoff that depends on S_T only, with its standard error."""
     ST = simulate_terminal_prices(S0, T, r, sigma, n_paths, seed)
     discounted = np.exp(-r * T) * payoff_fn(ST)
