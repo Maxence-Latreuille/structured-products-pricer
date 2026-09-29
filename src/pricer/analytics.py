@@ -42,4 +42,4 @@ def reverse_convertible_price(S0, K, T, r, sigma, coupon, nominal=1000.0):
     """Closed form: bond paying nominal*(1+coupon) minus nominal/K puts sold by the client."""
     bond = nominal*(1+coupon)*np.exp(-r*T)
     n_puts = nominal/K
-    return bond - bs_put(S0, K, T, r, sigma)
+    return bond - n_puts*bs_put(S0, K, T, r, sigma)
