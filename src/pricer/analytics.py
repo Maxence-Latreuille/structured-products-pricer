@@ -37,3 +37,9 @@ def implied_volatility(price, S0, K, T, r, option_type="call"):
             high = mid
 
     raise ValueError("Implied volatility not found within bounds.")
+
+def reverse_convertible_price(S0, K, T, r, sigma, coupon, nominal=1000.0):
+    """Closed form: bond paying nominal*(1+coupon) minus nominal/K puts sold by the client."""
+    bond = nominal*(1+coupon)*np.exp(-r*T)
+    n_puts = nominal/K
+    return bond - bs_put(S0, K, T, r, sigma)
