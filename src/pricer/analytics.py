@@ -43,3 +43,8 @@ def reverse_convertible_price(S0, K, T, r, sigma, coupon, nominal=1000.0):
     bond = nominal*(1+coupon)*np.exp(-r*T)
     n_puts = nominal/K
     return bond - n_puts*bs_put(S0, K, T, r, sigma)
+
+def reverse_convertible_coupon(S0, K, T, r, sigma, target=1000.0, nominal=1000.0):
+    """Coupon that makes the note worth `target` (target = nominal means at par)."""
+    n_puts = nominal / K
+    return ((target + n_puts*bs_put(S0, K, T, r, sigma))*np.exp(r*T)/nominal -1)
