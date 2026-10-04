@@ -1,6 +1,9 @@
 import numpy as np
+import numpy as np
 
-from pricer.products import call_payoff, put_payoff
+from pricer.products import call_payoff, put_payoff, phoenix_cashflows
+from pricer.models import simulate_gbm_paths
+
 
 
 def simulate_terminal_prices(S0, T, r, sigma, n_paths=100_000, seed=23):
@@ -26,3 +29,15 @@ def mc_call(S0, K, T, r, sigma, n_paths=100_000, seed=23):
 def mc_put(S0, K, T, r, sigma, n_paths=100_000, seed=42):
     # same logic
     return mc_price(lambda ST: put_payoff(ST, K), S0, T, r, sigma, n_paths, seed)
+
+def present_values(cashflows, obs_times, r):
+    """Discount each cash flow to today and sum along each path."""
+    discount = np.exp(-r * np.asarray(obs_times, dtype=float))
+    return (cashflows * discount).sum(axis=1)
+
+def price_phoenix(S0, r, sigma, obs_times, coupon, n_paths=100_000, seed=23, **terms):
+    """Monte Carlo fair value of an autocall Phoenix, with its standard error."""
+    paths = simulate_gbm_paths(S0, r, sigma, obs_times, n_paths, seed)
+    flows = phoenix_cashflows(paths, S0, coupon, **terms)
+    pv = present_values(flows, obs_times, r)
+    return pv.mean(), pv.std(ddof=1) / np.sqrt(n_paths)
