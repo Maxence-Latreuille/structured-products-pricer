@@ -18,7 +18,7 @@ analyse risks, and generate a client-ready term sheet.
 ## Roadmap
 - [x] Monte Carlo engine validated against Black-Scholes
 - [x] Reverse Convertible: Monte Carlo vs closed-form check
-- [ ] Autocall Phoenix + **coupon solver** (coupon that prices the note at par)
+- [x] Autocall Phoenix + **coupon solver** (coupon that prices the note at par)
 - [ ] Greeks (delta, gamma, vega) with common random numbers
 - [ ] Interactive Streamlit app (live demo)
 - [ ] Worst-of on 3 underlyings, correlation impact on the coupon
