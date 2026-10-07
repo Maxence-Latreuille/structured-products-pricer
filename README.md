@@ -1,38 +1,104 @@
 # Structured Products Pricer
 
-Pricing and structuring toolkit for equity structured products, built to reproduce
-the workflow of a structuring desk: design the payoff, solve for the coupon,
-analyse risks, and generate a client-ready term sheet.
+A Python toolkit for pricing structured products the way a structuring desk does: break the
+payoff into simpler pieces, price it, solve for the coupon, then study how the product behaves.
 
-> 🚧 **Status: work in progress.** Built step by step; see the roadmap below.
+The equity module covers vanilla options, the Reverse Convertible and the autocall Phoenix.
+It is on hold while I work on the credit module (CDS pricing, a default probability curve and
+the Credit-Linked Note); its remaining items are in the roadmap.
+
+The [autocall walkthrough notebook](notebooks/equity/autocall_walkthrough.ipynb) goes through
+the product, the pricing method, the validation and the results.
 
 ## Products
+
+### Equity
 | Product | Method | Status |
 |---|---|---|
-| European call & put | Black-Scholes closed form, Monte Carlo, put-call parity | ✅ Done |
-| Reverse Convertible | Closed form (zero-coupon − put) + Monte Carlo validation | ✅ Done |
-| Autocall Phoenix | Autocall, memory coupon & capital-protection barriers | 🚧 In progress |
-| Worst-of Autocall | Multi-asset correlated GBM (Cholesky) | 📅 Planned |
-| Capital-Protected Note | Zero-coupon + call participation | 📅 Planned |
+| European call and put | Black-Scholes closed form, Monte Carlo, put-call parity | Done |
+| Reverse Convertible | Closed form (zero-coupon bond minus a put), Monte Carlo check, par coupon | Done |
+| Autocall Phoenix | Monte Carlo on observation dates (autocall, memory coupon, protection barrier), par coupon solver | Done |
+| Worst-of autocall | Correlated GBM on several underlyings (Cholesky) | Planned |
+| Capital-protected note | Zero-coupon bond plus call participation | Planned |
+
+### Credit
+| Product | Method | Status |
+|---|---|---|
+| Credit default swap | Hazard rate model, premium and protection legs | In progress |
+| Default probability curve | Hazard rates bootstrapped from market CDS spreads | Planned |
+| Credit-Linked Note | Bond plus a CDS sold on a reference entity, par coupon | Planned |
+
+## Key results: autocall Phoenix
+
+The note is written on the Euro Stoxx 50, with a 5-year maximum maturity and annual
+observations. The autocall barrier is at 100%, the coupon barrier at 70% with memory and the
+protection barrier at 60%. Market inputs are r = 3% and σ = 20%.
+
+- The par coupon is about 5.4% a year. An 8% coupon would be worth about 105% of the nominal.
+- Volatility moves the coupon more than any other input: the par coupon rises from about 3%
+  at σ = 10% to about 14% at σ = 40%.
+- A higher protection barrier pays for a higher coupon with more capital risk. A higher coupon
+  barrier pays for it with fewer coupons, and the capital risk stays the same.
+- About 52% of paths are called after one year, and the expected life is about 2.4 years.
+- Capital losses happen on about 7.7% of paths and average about 52% of the nominal, because
+  of the cliff at the protection barrier.
+
+<p>
+  <img src="docs/equity/par_coupon_vs_vol.png" alt="Par coupon vs volatility" width="49%">
+  <img src="docs/equity/product_life.png" alt="How the autocall ends" width="49%">
+</p>
+<img src="docs/equity/par_coupon_vs_barriers.png" alt="Par coupon vs barriers" width="75%">
+
+## Validation
+
+The `pytest` suite checks:
+
+- Monte Carlo prices against the Black-Scholes closed forms for the call, the put and the
+  Reverse Convertible, within 3 standard errors
+- put-call parity, and an implied volatility round trip
+- simulated paths against a hand calculation, and the risk-neutral drift (the discounted mean
+  equals the spot at every observation date)
+- autocall cash flows, date by date, on term-sheet scenarios
+- two limit cases: a note that is never called and always protected is a zero-coupon bond, and
+  a note that is never called and never protected is worth its nominal, like the index itself
+- the coupon solver against the closed form, and that the value increases with the coupon
 
 ## Roadmap
+
+### Equity
 - [x] Monte Carlo engine validated against Black-Scholes
-- [x] Reverse Convertible: Monte Carlo vs closed-form check
-- [x] Autocall Phoenix + **coupon solver** (coupon that prices the note at par)
-- [ ] Greeks (delta, gamma, vega) with common random numbers
+- [x] Reverse Convertible: Monte Carlo vs closed form, par coupon
+- [x] Autocall Phoenix and par coupon solver
+- [x] Walkthrough notebook: par coupon sensitivities and product life statistics
+- [ ] Greeks (delta, gamma, vega) with common random numbers, behaviour near the barrier
 - [ ] Interactive Streamlit app (live demo)
-- [ ] Worst-of on 3 underlyings, correlation impact on the coupon
-- [ ] Market data (yfinance) and PDF term sheet generation
-- [ ] Skew / local volatility impact on autocall pricing
+- [ ] Worst-of on 3 underlyings and the effect of correlation on the coupon
+- [ ] Effect of skew, local volatility and dividends on autocall pricing
+
+### Credit
+- [ ] CDS pricing with a constant hazard rate
+- [ ] Default probability curve bootstrapped from CDS spreads
+- [ ] Credit-Linked Note: decomposition and par coupon
+- [ ] Issuer credit spread (funding) in structured product pricing
 
 ## Project structure
-    src/pricer/     analytics (closed forms), monte_carlo, products, greeks, solver
-    tests/          pytest: Monte Carlo vs closed-form checks
-    notebooks/      walkthrough and analysis (coming)
-    app/            Streamlit interface (coming)
+    src/pricer/
+        common/solver.py      generic par coupon solver
+        equity/
+            analytics.py      closed forms: Black-Scholes, implied volatility, Reverse Convertible
+            models.py         risk-neutral GBM paths at observation dates
+            products.py       payoffs and cash flows, written as term sheets
+            monte_carlo.py    generic Monte Carlo pricer, autocall valuation
+            solver.py         autocall par coupon
+        credit/
+            cds.py            CDS pricing with a hazard rate model (in progress)
+    tests/equity/             pytest suite (see Validation)
+    notebooks/equity/         autocall walkthrough
+    docs/equity/              figures used in this README
 
 ## Quickstart
     pip install -r requirements.txt
+    pip install -e .
     pytest -v
 
 ## Author
