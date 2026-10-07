@@ -24,7 +24,7 @@ def discount_factor(t, interest_rate):
         return np.exp(-t * interest_rate)
 
 
-def risky_annuity(payment_times, hazard_rate, interest_rate):
+def risky_annuity(payment_times, hazard_rate, interest_rate): # payment_times will be a array numpy
     """Present value of 1 unit of CDS premium paid while the name survives."""
     survival = survival_probability(payment_times, hazard_rate)
     discount = discount_factor(payment_times, interest_rate)
