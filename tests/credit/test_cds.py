@@ -1,6 +1,6 @@
 import numpy as np
 
-from pricer.credit.cds import survival_probability, default_probability, risky_annuity
+from pricer.credit.cds import survival_probability, default_probability, risky_annuity, payment_schedule
 
 
 def test_survival_probability():
@@ -19,33 +19,53 @@ def test_default_probability():
     assert np.isclose(survival_probability(t, hazard_rate) + default_probability(t, hazard_rate), 1.0)
 
 
-def test_risky_annuity_quarterly_hand_value():
-    # Lesson table: 1Y quarterly, r = lambda = 2.5%. The version without year fractions gave 3.877.
-    payment_times = np.arange(1, 5) / 4
+def test_payment_schedule():
+    assert np.allclose(payment_schedule(1, frequency=4), [0.25, 0.5, 0.75, 1.0])
+    assert np.allclose(payment_schedule(5, frequency=1), [1.0, 2.0, 3.0, 4.0, 5.0])
+    assert len(payment_schedule(5, frequency=4)) == 20
 
+
+def test_risky_annuity_quarterly_hand_value():
+    # Lesson table: 1Y quarterly, r = lambda = 2.5%, no accrued. The version without year fractions gave 3.877.
     expected = 0.96933
 
-    assert np.isclose(risky_annuity(payment_times, 0.025, 0.025), expected, atol=1e-5)
+    result = risky_annuity(1, 0.025, 0.025, frequency=4, include_accrued=False)
+
+    assert np.isclose(result, expected, atol=1e-5)
+
+
+def test_risky_annuity_annual_hand_values():
+    # 5Y annual, r = lambda = 2.5%.
+    without_accrued = risky_annuity(5, 0.025, 0.025, frequency=1, include_accrued=False)
+    with_accrued = risky_annuity(5, 0.025, 0.025, frequency=1, include_accrued=True)
+
+    assert np.isclose(without_accrued, 4.3143, atol=1e-4)
+    assert np.isclose(with_accrued, 4.3689, atol=1e-4)
+
+
+def test_risky_annuity_quarterly_with_accrued():
+    # RPV01 = 4.410.
+    assert np.isclose(risky_annuity(5, 0.025, 0.025, frequency=4), 4.410, atol=1e-3)
 
 
 def test_risky_annuity_no_risk_equals_maturity():
     # With no default risk and no discounting, D = Q = 1, so RPV01 = sum of year fractions = maturity.
-    payment_times = np.arange(1, 21) / 4
-
-    expected = 5.0
-
-    assert np.isclose(risky_annuity(payment_times, 0.0, 0.0), expected)
+    # It must not depend on the payment frequency.
+    for frequency in (1, 2, 4, 12):
+        assert np.isclose(risky_annuity(5, 0.0, 0.0, frequency=frequency), 5.0)
 
 
 def test_risky_annuity_decreases_with_hazard_rate():
     # A riskier name pays fewer premiums on average.
-    payment_times = np.arange(1, 21) / 4
-
-    rpv01_safe = risky_annuity(payment_times, 0.025, 0.025)
-    rpv01_risky = risky_annuity(payment_times, 0.05, 0.025)
+    rpv01_safe = risky_annuity(5, 0.025, 0.025)
+    rpv01_risky = risky_annuity(5, 0.05, 0.025)
 
     assert rpv01_risky < rpv01_safe
 
 
-def test_risky_annuity_accepts_list():
-    assert np.isclose(risky_annuity([0.5, 1.0], 0.0, 0.0), 1.0)
+def test_accrued_is_zero_without_default_risk():
+    # With a zero hazard rate nobody defaults, so the accrued premium adds nothing.
+    with_accrued = risky_annuity(5, 0.0, 0.03, include_accrued=True)
+    without_accrued = risky_annuity(5, 0.0, 0.03, include_accrued=False)
+
+    assert np.isclose(with_accrued, without_accrued)
