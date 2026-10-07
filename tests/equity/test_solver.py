@@ -1,6 +1,7 @@
-from pricer.analytics import reverse_convertible_price, reverse_convertible_coupon
-from pricer.solver import solve_coupon, phoenix_par_coupon
-from pricer.monte_carlo import price_phoenix
+from pricer.equity.analytics import reverse_convertible_price, reverse_convertible_coupon
+from pricer.common.solver import solve_coupon
+from pricer.equity.solver import phoenix_par_coupon
+from pricer.equity.monte_carlo import price_phoenix
 
 PARAMS = dict(S0=100, K=100, T=1, r=0.03, sigma=0.2)
 

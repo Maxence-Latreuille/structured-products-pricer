@@ -1,8 +1,8 @@
 import numpy as np
 import numpy as np
 
-from pricer.products import call_payoff, put_payoff, phoenix_cashflows
-from pricer.models import simulate_gbm_paths
+from pricer.equity.products import call_payoff, put_payoff, phoenix_cashflows
+from pricer.equity.models import simulate_gbm_paths
 
 
 

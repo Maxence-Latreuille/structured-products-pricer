@@ -1,6 +1,6 @@
 import numpy as np
 
-from pricer.monte_carlo import price_phoenix, present_values
+from pricer.equity.monte_carlo import price_phoenix, present_values
 
 TIMES = [1, 2, 3, 4, 5]
 

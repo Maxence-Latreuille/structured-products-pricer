@@ -1,17 +1,5 @@
-from scipy.optimize import brentq
-
-from pricer.monte_carlo import price_phoenix
-
-
-def solve_coupon(value_fn, target, low=0.0, high=1.0):
-    """Find the coupon c such that value_fn(c) == target.
-
-    Works for any product whose value increases with the coupon.
-    """
-    def pricing_error(c):
-        return value_fn(c) - target
-
-    return brentq(pricing_error, low, high)
+from pricer.common.solver import solve_coupon
+from pricer.equity.monte_carlo import price_phoenix
 
 
 def phoenix_par_coupon(S0, r, sigma, obs_times, target=1000.0,

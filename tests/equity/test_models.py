@@ -1,6 +1,6 @@
 import numpy as np
 
-from pricer.models import gbm_paths_from_shocks, simulate_gbm_paths
+from pricer.equity.models import gbm_paths_from_shocks, simulate_gbm_paths
 
 def test_paths_match_hand_calculation():
     Z = np.array([[-0.4, -1.5, 0.2, -0.5, -0.3]])

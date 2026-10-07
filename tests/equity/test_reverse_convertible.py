@@ -1,8 +1,8 @@
 import numpy as np
 
-from pricer.analytics import reverse_convertible_price
-from pricer.monte_carlo import mc_price
-from pricer.products import reverse_convertible_payoff
+from pricer.equity.analytics import reverse_convertible_price
+from pricer.equity.monte_carlo import mc_price
+from pricer.equity.products import reverse_convertible_payoff
 
 def test_rc_payoff_matches_term_sheet():
     ST = np.array([130.0, 100.0, 95.0, 80.0, 50.0])

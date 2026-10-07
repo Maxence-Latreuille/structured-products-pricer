@@ -1,5 +1,5 @@
-from pricer.analytics import bs_call
-from pricer.monte_carlo import mc_call
+from pricer.equity.analytics import bs_call
+from pricer.equity.monte_carlo import mc_call
 
 def test_mc_call():
     params = dict(S0=100, K=100, T=1, r=0.03, sigma=0.2)

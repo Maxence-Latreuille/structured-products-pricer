@@ -1,6 +1,6 @@
 import numpy as np
 
-from pricer.products import phoenix_cashflows
+from pricer.equity.products import phoenix_cashflows
 
 
 def test_phoenix_scenarios_from_term_sheet():
