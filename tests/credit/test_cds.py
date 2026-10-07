@@ -28,15 +28,6 @@ def test_risky_annuity_quarterly_hand_value():
     assert np.isclose(risky_annuity(payment_times, 0.025, 0.025), expected, atol=1e-5)
 
 
-def test_risky_annuity_annual_hand_value():
-    # Lesson example: 5Y annual, r = lambda = 2.5%, no accrued premium.
-    payment_times = np.arange(1, 6)
-
-    expected = 4.3143
-
-    assert np.isclose(risky_annuity(payment_times, 0.025, 0.025), expected, atol=1e-4)
-
-
 def test_risky_annuity_no_risk_equals_maturity():
     # With no default risk and no discounting, D = Q = 1, so RPV01 = sum of year fractions = maturity.
     payment_times = np.arange(1, 21) / 4

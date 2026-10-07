@@ -25,11 +25,9 @@ def discount_factor(t, interest_rate):
 
 
 def risky_annuity(payment_times, hazard_rate, interest_rate):
-    """
-    Present value of 1 unit of CDS premium per year, paid while the name survives (RPV01).
-    RPV01 = sum_i delta_i * D(t_i) * Q(t_i), with delta_i = t_i - t_{i-1} and t_0 = 0.
-    """
-    payment_times = np.asarray(payment_times, dtype=float)
+    """Present value of 1 unit of CDS premium paid while the name survives."""
+    payment_times = np.asarray(payment_times, dtype=float) # payment_times will be a array numpy
+
     survival = survival_probability(payment_times, hazard_rate)
     discount = discount_factor(payment_times, interest_rate)
     year_fractions = np.diff(payment_times, prepend=0.0)
