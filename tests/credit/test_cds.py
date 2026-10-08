@@ -1,6 +1,6 @@
 import numpy as np
 
-from pricer.credit.cds import survival_probability, default_probability, risky_annuity, payment_schedule, protection_leg, par_spread
+from pricer.credit.cds import survival_probability, default_probability, risky_annuity, payment_schedule, protection_leg, par_spread, value_to_protection_buyer, upfront
 
 def test_survival_probability():
     hazard_rate = 0.02
@@ -104,3 +104,13 @@ def test_par_spread_properties():
     assert np.isclose(par_spread(5, 0.0, 0.03, 0.4), 0.0)
     assert par_spread(5, 0.05, 0.025, 0.4) > par_spread(5, 0.025, 0.025, 0.4)
     assert par_spread(5, 0.025, 0.025, 0.7) < par_spread(5, 0.025, 0.025, 0.4)
+
+def test_value_is_zero_at_the_par_spread():
+    # A CDS at the par spread is worth nothing at inception.
+    spread = par_spread(5, 0.025, 0.025, 0.4)
+
+    assert np.isclose(value_to_protection_buyer(spread, 5, 0.025, 0.025, 0.4), 0.0)
+
+def test_upfront_hand_value():
+    # 5Y annual, r = lambda = 2.5%, R = 40%, standard coupon 100bp: the buyer pays 2.27%.
+    assert np.isclose(upfront(0.01, 5, 0.025, 0.025, 0.4, frequency=1), 0.02266, atol=1e-5)

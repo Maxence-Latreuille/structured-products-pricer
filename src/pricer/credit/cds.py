@@ -71,3 +71,17 @@ def par_spread(maturity, hazard_rate, interest_rate, recovery, frequency=4, incl
     s_spread = protection_leg(maturity, hazard_rate, interest_rate, recovery, frequency)/risky_annuity(maturity, hazard_rate, interest_rate, frequency, include_accrued)
 
     return s_spread
+
+def value_to_protection_buyer(contract_spread, maturity, hazard_rate, interest_rate, recovery, frequency=4, include_accrued=True):
+    """Value to the protection buyer per unit notional: protection leg minus the premium paid at the contract spread."""
+
+    prot_leg = protection_leg(maturity, hazard_rate, interest_rate, recovery, frequency)
+    rvp_01 = risky_annuity(maturity, hazard_rate, interest_rate, frequency, include_accrued)
+
+    return prot_leg - contract_spread * rvp_01
+
+def upfront(coupon, maturity, hazard_rate, interest_rate, recovery, frequency=4, include_accrued=True):
+    """Upfront per unit notional for a contract with a standard coupon: positive if the buyer pays, negative if the seller pays."""
+    return value_to_protection_buyer(coupon, maturity, hazard_rate, interest_rate, recovery, frequency, include_accrued)
+
+
