@@ -29,20 +29,31 @@ def payment_schedule(maturity, frequency=4):
 
     return np.arange(1, number_of_payments + 1) / frequency
 
+def _period_grid(maturity, frequency):
+    """Payment dates t_i, period starts t_{i-1}, year fractions delta_i and period midpoints m_i."""
+    payment_times = payment_schedule(maturity, frequency)  # t_i, ex: 1Y quarterly: [0.25, 0.5, 0.75, 1.0]
+    year_fractions = np.diff(payment_times, prepend=0.0)  # [0.25, 0.25, 0.25, 0.25]
+    period_starts = payment_times - year_fractions        # t_{i-1}, ex: [0, 0.25, 0.5, 0.75]
+    period_midpoints = payment_times - (year_fractions/2) # m_i (default date), ex: [0.125, 0.375, 0.625, 0.875]
+
+    return payment_times, year_fractions, period_starts, period_midpoints
+
+
+
 def risky_annuity(maturity, hazard_rate, interest_rate, frequency=4, include_accrued=True):
     """Present value of 1 unit of CDS premium paid while the name survives, plus the accrued premium on default."""
-    payment_times = payment_schedule(maturity, frequency)
+    payment_times, year_fractions, period_starts, period_midpoints = _period_grid(maturity, frequency)
 
     survival = survival_probability(payment_times, hazard_rate)
     discount = discount_factor(payment_times, interest_rate)
-    year_fractions = np.diff(payment_times, prepend=0.0)
 
     annuity = np.sum(year_fractions * survival * discount)
 
     if include_accrued:
-        period_starts = payment_times - year_fractions
-        default_in_period = default_probability_between(period_starts, payment_times, hazard_rate)
-        accrued = np.sum(0.5 * year_fractions * discount * default_in_period)
-        annuity += accrued
+        discount_at_default = discount_factor(period_midpoints, interest_rate)                      # D(m_i): accrued is paid at default, not at t_i
+        default_in_period = default_probability_between(period_starts, payment_times, hazard_rate)  # Q(t_{i-1}) - Q(t_i): P(default in period i)
+        accrued = np.sum(0.5 * year_fractions * discount_at_default * default_in_period)            # half a period of premium owed on average
+        annuity += accrued           # RPV01 = premium leg (survival) + accrued (default)
 
     return annuity
+

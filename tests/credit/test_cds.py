@@ -35,17 +35,18 @@ def test_risky_annuity_quarterly_hand_value():
 
 
 def test_risky_annuity_annual_hand_values():
-    # 5Y annual, r = lambda = 2.5%.
+    # 5Y annual, r = lambda = 2.5%. The accrued is discounted at the default date (middle of the period).
     without_accrued = risky_annuity(5, 0.025, 0.025, frequency=1, include_accrued=False)
     with_accrued = risky_annuity(5, 0.025, 0.025, frequency=1, include_accrued=True)
 
     assert np.isclose(without_accrued, 4.3143, atol=1e-4)
-    assert np.isclose(with_accrued, 4.3689, atol=1e-4)
+    assert np.isclose(with_accrued - without_accrued, 0.0553, atol=1e-4)
+    assert np.isclose(with_accrued, 4.3696, atol=1e-4)
 
 
 def test_risky_annuity_quarterly_with_accrued():
-    # RPV01 = 4.410.
-    assert np.isclose(risky_annuity(5, 0.025, 0.025, frequency=4), 4.410, atol=1e-3)
+    # 5Y quarterly, mid-period convention.
+    assert np.isclose(risky_annuity(5, 0.025, 0.025, frequency=4), 4.4102, atol=1e-4)
 
 
 def test_risky_annuity_no_risk_equals_maturity():
