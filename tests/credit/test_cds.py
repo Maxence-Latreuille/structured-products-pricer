@@ -1,7 +1,6 @@
 import numpy as np
 
-from pricer.credit.cds import survival_probability, default_probability, risky_annuity, payment_schedule
-
+from pricer.credit.cds import survival_probability, default_probability, risky_annuity, payment_schedule, protection_leg, par_spread
 
 def test_survival_probability():
     hazard_rate = 0.02
@@ -70,3 +69,38 @@ def test_accrued_is_zero_without_default_risk():
     without_accrued = risky_annuity(5, 0.0, 0.03, include_accrued=False)
 
     assert np.isclose(with_accrued, without_accrued)
+
+
+def test_protection_leg_hand_value():
+    # 5Y annual, r = lambda = 2.5%, R = 40%, default paid in the middle of the period.
+    assert np.isclose(protection_leg(5, 0.025, 0.025, 0.4, frequency=1), 0.06635, atol=1e-5)
+
+
+def test_protection_leg_is_proportional_to_loss_given_default():
+    # Same default probabilities, only (1 - R) changes.
+    low_recovery = protection_leg(5, 0.025, 0.025, 0.2)
+    high_recovery = protection_leg(5, 0.025, 0.025, 0.6)
+
+    assert np.isclose(low_recovery / high_recovery, 0.8 / 0.4) # Proportional
+    assert np.isclose(protection_leg(5, 0.025, 0.025, 1.0), 0.0) # (1-R) = 0
+
+def test_par_spread_quarterly_hand_value():
+    # 5Y quarterly: 150.47bp.
+    assert np.isclose(par_spread(5, 0.025, 0.025, 0.4, frequency=4), 0.0150468, atol=1e-6)
+
+
+def test_par_spread_tends_to_credit_triangle_with_frequent_payments():
+    # The credit triangle s = lambda * (1 - R) is the limit of continuous payments.
+    triangle = 0.025 * (1 - 0.4)
+
+    gaps = [abs(par_spread(5, 0.025, 0.025, 0.4, frequency=f) - triangle) for f in (1, 4, 12)] # Annualy, quaterly, monthly
+
+    assert gaps[0] > gaps[1] > gaps[2]
+    assert gaps[2] < 2e-5
+
+
+def test_par_spread_properties():
+    # No default risk -> no spread. Riskier name -> higher spread. Higher recovery -> lower spread.
+    assert np.isclose(par_spread(5, 0.0, 0.03, 0.4), 0.0)
+    assert par_spread(5, 0.05, 0.025, 0.4) > par_spread(5, 0.025, 0.025, 0.4)
+    assert par_spread(5, 0.025, 0.025, 0.7) < par_spread(5, 0.025, 0.025, 0.4)

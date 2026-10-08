@@ -57,3 +57,17 @@ def risky_annuity(maturity, hazard_rate, interest_rate, frequency=4, include_acc
 
     return annuity
 
+def protection_leg(maturity, hazard_rate, interest_rate, recovery, frequency=4):
+    """Present value of the protection payment (1 - R) per unit notional, paid at the default date (middle of the period)."""
+    payment_times, year_fractions, period_starts, period_midpoints = _period_grid(maturity, frequency)
+
+    discount_at_default = discount_factor(period_midpoints, interest_rate)
+    default_in_period = default_probability_between(period_starts, payment_times, hazard_rate)
+
+    return (1-recovery)*np.sum(discount_at_default * default_in_period)
+
+def par_spread(maturity, hazard_rate, interest_rate, recovery, frequency=4, include_accrued=True):
+    """Spread that makes the premium leg equal to the protection leg, as a decimal per year (0.015 = 150bp)."""
+    s_spread = protection_leg(maturity, hazard_rate, interest_rate, recovery, frequency)/risky_annuity(maturity, hazard_rate, interest_rate, frequency, include_accrued)
+
+    return s_spread
