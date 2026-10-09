@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import brentq
 
 
 def cumulative_hazard(t, curve_times, hazard_rates):
@@ -18,7 +19,7 @@ def survival_probability(t, hazard_rate):
     if np.isscalar(hazard_rate): # a single number: flat hazard rate
         return np.exp(-hazard_rate * t)  # H(t) = lambda * t
 
-    curve_times, hazard_rates = hazard_rate  # a curve: split the pair into its two arrays
+    curve_times, hazard_rates = hazard_rate  # split in 2 pair ([1, 3, 5], [0.0133, 0.0235, 0.0335])
     curve_times = np.asarray(curve_times, dtype=float) # accept lists as well as arrays
     hazard_rates = np.asarray(hazard_rates, dtype=float)
 
@@ -98,3 +99,23 @@ def upfront(coupon, maturity, hazard_rate, interest_rate, recovery, frequency=4,
     return value_to_protection_buyer(coupon, maturity, hazard_rate, interest_rate, recovery, frequency, include_accrued)
 
 
+# curve_times : The end date of each bucket, in years	[1, 3, 5]
+# hazard_rates : The hazard rate of each bucket	[0.0133, 0.0235, 0.0335]
+# curve : The pair of the two lists above	([1, 3, 5], [0.0133, 0.0235, 0.0335])
+
+def bootstrap_hazard_curve(maturities, spreads, interest_rate, recovery, frequency=4):
+    """Hazard curve (curve_times, hazard_rates) that reprices each quoted CDS spread, solved one maturity at a time."""
+    hazard_rates = [] # the "known λ's" column at the start : empty because we know nothing yet.
+
+    for k in range(len(maturities)):                  
+        curve_times = maturities[:k + 1] # the first k+1 maturities. At k = 0 it’s [1], at k = 1 it’s [1, 3]
+        extra_arguments = (curve_times, hazard_rates, spreads[k], interest_rate, recovery, frequency)   
+        new_hazard_rate = brentq(_bootstrap_error, 1e-8, 5.0, args=extra_arguments)                      
+        hazard_rates.append(new_hazard_rate)           
+
+    return np.asarray(maturities, dtype=float), np.asarray(hazard_rates)  
+
+def _bootstrap_error(new_hazard_rate, curve_times, known_hazard_rates, spread, interest_rate, recovery, frequency):
+    curve = (curve_times, known_hazard_rates + [new_hazard_rate]) # The curve: the known λ's plus one extra at the end, the trial value.
+    maturity = curve_times[-1] 
+    return par_spread(maturity, curve, interest_rate, recovery, frequency) - spread   

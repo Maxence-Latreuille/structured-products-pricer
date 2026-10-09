@@ -1,6 +1,6 @@
 import numpy as np
 
-from pricer.credit.cds import survival_probability, default_probability, risky_annuity, payment_schedule, protection_leg, par_spread, value_to_protection_buyer, upfront
+from pricer.credit.cds import survival_probability, default_probability, risky_annuity, payment_schedule, protection_leg, par_spread, value_to_protection_buyer, upfront, bootstrap_hazard_curve
 
 def test_survival_probability():
     hazard_rate = 0.02
@@ -128,3 +128,21 @@ def test_flat_hazard_curve_gives_same_par_spread_as_constant_rate():
     curve = ([1, 5], [0.02, 0.02])
 
     assert np.isclose(par_spread(5, curve, 0.025, 0.4), par_spread(5, 0.02, 0.025, 0.4))
+
+
+def test_bootstrap_round_trip():
+    # Repricing the input CDS with the calibrated curve must give back the input spreads.
+    maturities = [1, 3, 5]
+    spreads = [0.008, 0.012, 0.015]
+
+    curve = bootstrap_hazard_curve(maturities, spreads, 0.03, 0.4)
+    repriced = [par_spread(maturity, curve, 0.03, 0.4) for maturity in maturities]
+
+    assert np.allclose(repriced, spreads, atol=1e-8)
+
+
+def test_bootstrap_flat_spreads_give_flat_curve_close_to_credit_triangle():
+    # Same spread at every maturity -> same hazard rate in every bucket, close to s / (1 - R).
+    curve_times, hazard_rates = bootstrap_hazard_curve([1, 3, 5], [0.01, 0.01, 0.01], 0.03, 0.4)
+
+    assert np.allclose(hazard_rates, 0.01 / 0.6, atol=1e-4)
