@@ -114,3 +114,17 @@ def test_value_is_zero_at_the_par_spread():
 def test_upfront_hand_value():
     # 5Y annual, r = lambda = 2.5%, R = 40%, standard coupon 100bp: the buyer pays 2.27%.
     assert np.isclose(upfront(0.01, 5, 0.025, 0.025, 0.4, frequency=1), 0.02266, atol=1e-5)
+
+
+def test_hazard_curve_survival_probability():
+    # Rates 2%, 4%, 6% on [0,1], [1,2], [2,3]: at t = 2.5 the cumulative hazard is 0.02 + 0.04 + 0.5 * 0.06 = 0.09.
+    curve = ([1, 2, 3], [0.02, 0.04, 0.06])
+
+    assert np.isclose(survival_probability(2.5, curve), np.exp(-0.09))
+
+
+def test_flat_hazard_curve_gives_same_par_spread_as_constant_rate():
+    # A curve with the same rate in every bucket must reproduce the constant hazard rate pricing.
+    curve = ([1, 5], [0.02, 0.02])
+
+    assert np.isclose(par_spread(5, curve, 0.025, 0.4), par_spread(5, 0.02, 0.025, 0.4))

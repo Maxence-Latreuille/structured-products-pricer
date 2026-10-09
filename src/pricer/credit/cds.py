@@ -1,19 +1,32 @@
 import numpy as np
 
 
+def cumulative_hazard(t, curve_times, hazard_rates):
+    """Integral of a piecewise-constant hazard rate from 0 to t; the last rate is extended beyond the last curve time."""
+    t = np.asarray(t, dtype=float) # accept a number, a list or an array
+    knots = np.concatenate(([0.0], curve_times)) # add t = 0 in front, ex: [0, 1, 3, 5]
+    cumulative_at_knots = np.concatenate(([0.0], np.cumsum(np.diff(knots) * hazard_rates))) # H at each knot = sum of lambda x bucket length, ex: [0, 0.01, 0.05, 0.11]
+    inside = np.interp(t, knots, cumulative_at_knots) # straight line between knots, ex: H(2) = 0.03
+    beyond = np.maximum(t - knots[-1], 0.0) * hazard_rates[-1] # after the last knot keep the last lambda, ex: H(6) adds 1 x 0.03
+
+    return inside + beyond # H(t), so that Q(t) = exp(-H(t))
+
+
+
 def survival_probability(t, hazard_rate):
-    """
-    Survival probability Q(t) under a constant hazard rate.
-    Q(t) = exp(-lambda * t)
-    """
-    return np.exp(-hazard_rate * t)
+    """Survival probability Q(t) = exp(-H(t)); hazard_rate is a constant, or a curve given as (curve_times, hazard_rates)."""
+    if np.isscalar(hazard_rate): # a single number: flat hazard rate
+        return np.exp(-hazard_rate * t)  # H(t) = lambda * t
+
+    curve_times, hazard_rates = hazard_rate  # a curve: split the pair into its two arrays
+    curve_times = np.asarray(curve_times, dtype=float) # accept lists as well as arrays
+    hazard_rates = np.asarray(hazard_rates, dtype=float)
+
+    return np.exp(-cumulative_hazard(t, curve_times, hazard_rates))   # H(t) = sum of lambda x time spent in each bucket
 
 
 def default_probability(t, hazard_rate):
-    """
-    Default probability by time t.
-    PD(t) = 1 - Q(t)
-    """
+    """Default probability by time t. PD(t) = 1 - Q(t)"""
     return 1.0 - survival_probability(t, hazard_rate)
 
 def default_probability_between(t1, t2, hazard_rate):
