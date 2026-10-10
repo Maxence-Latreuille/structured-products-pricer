@@ -119,3 +119,22 @@ def _bootstrap_error(new_hazard_rate, curve_times, known_hazard_rates, spread, i
     curve = (curve_times, known_hazard_rates + [new_hazard_rate]) # The curve: the known λ's plus one extra at the end, the trial value.
     maturity = curve_times[-1] 
     return par_spread(maturity, curve, interest_rate, recovery, frequency) - spread   
+
+
+def cs01(contract_spread, maturity, maturities, spreads, interest_rate, recovery, frequency=4, bump=0.0001):
+    """Change in the value to the protection buyer, per unit notional, when every quoted spread rises by bump (1bp)."""
+    curve_before_bump = bootstrap_hazard_curve(maturities, spreads, interest_rate, recovery, frequency)
+    curve_after_bump = bootstrap_hazard_curve(maturities, np.asarray(spreads) + bump, interest_rate, recovery, frequency)
+
+    value_before_bump = value_to_protection_buyer(contract_spread, maturity, curve_before_bump, interest_rate, recovery, frequency)
+    value_after_bump = value_to_protection_buyer(contract_spread, maturity, curve_after_bump, interest_rate, recovery, frequency)
+
+    cs_01 = value_after_bump - value_before_bump
+    return cs_01
+
+
+def jump_to_default(contract_spread, maturity, hazard_rate, interest_rate, recovery, frequency=4):
+    """P&L of the protection buyer, per unit notional, if the name defaults immediately: payout minus the value given up."""
+    value = value_to_protection_buyer(contract_spread, maturity, hazard_rate, interest_rate, recovery, frequency) # per unit of notional, ex -0.021973 (-2.1973% / -219.73 bps)
+
+    return (1 - recovery) - value       # per unit of notional
