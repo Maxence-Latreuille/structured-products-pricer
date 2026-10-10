@@ -46,10 +46,25 @@ spreads to a hazard rate curve, survival probabilities, the two CDS legs and the
 ### Credit
 - [x] CDS pricing with a constant hazard rate
 - [x] Default probability curve bootstrapped from CDS spreads
-- [ ] CS01 and jump-to-default
+- [x] CS01 and jump-to-default
 - [ ] Credit-Linked Note: decomposition and par coupon
 - [ ] Issuer credit spread (funding) in structured product pricing
 
+
+## Key results: CDS
+
+The examples use a 5-year CDS on a notional of €10m, market spreads of 80, 120 and 150 bp at
+1, 3 and 5 years, r = 3%, R = 40% and quarterly payments.
+
+- The hazard curve bootstrapped from the three spreads has rates of 1.33% (0 to 1 year), 2.35%
+  (1 to 3 years) and 3.35% (3 to 5 years). Repricing the three CDS returns the input spreads.
+- A CDS bought at 200 bp, when the fair spread is 150 bp, is worth about -€220k to the buyer.
+  With a standard 100 bp coupon, the buyer pays an upfront of 2.2% of the notional.
+- The CS01 of the 150 bp contract is about €4.4k per basis point, computed by bumping the
+  spreads and re-bootstrapping. The jump-to-default of the buyer is €6m (60% of the notional),
+  more than 1,300 times the CS01.
+- Simplifications: flat discount rate, default assumed in the middle of each period, constant
+  recovery, no day-count conventions.
 
 ## Key results: autocall Phoenix
 
