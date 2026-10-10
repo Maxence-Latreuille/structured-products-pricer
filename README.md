@@ -10,6 +10,9 @@ the Credit-Linked Note); its remaining items are in the roadmap.
 The [autocall walkthrough notebook](notebooks/equity/autocall_walkthrough.ipynb) goes through
 the product, the pricing method, the validation and the results.
 
+The [CDS walkthrough notebook](notebooks/credit/cds_walkthrough.ipynb) goes from market CDS
+spreads to a hazard rate curve, survival probabilities, the two CDS legs and the par spread.
+
 ## Products
 
 ### Equity
@@ -24,9 +27,29 @@ the product, the pricing method, the validation and the results.
 ### Credit
 | Product | Method | Status |
 |---|---|---|
-| Credit default swap | Hazard rate model, premium and protection legs | In progress |
-| Default probability curve | Hazard rates bootstrapped from market CDS spreads | Planned |
-| Credit-Linked Note | Bond plus a CDS sold on a reference entity, par coupon | Planned |
+| Credit default swap | Piecewise-constant hazard rate, premium and protection legs, par spread, upfront, value | Done |
+| Default probability curve | Hazard rates bootstrapped from market CDS spreads | Done |
+| Credit-Linked Note | Bond plus a CDS sold on a reference entity, par coupon | In Progess |
+
+## Roadmap
+
+### Equity
+- [x] Monte Carlo engine validated against Black-Scholes
+- [x] Reverse Convertible: Monte Carlo vs closed form, par coupon
+- [x] Autocall Phoenix and par coupon solver
+- [x] Walkthrough notebook: par coupon sensitivities and product life statistics
+- [ ] Greeks (delta, gamma, vega) with common random numbers, behaviour near the barrier
+- [ ] Interactive Streamlit app (live demo)
+- [ ] Worst-of on 3 underlyings and the effect of correlation on the coupon
+- [ ] Effect of skew, local volatility and dividends on autocall pricing
+
+### Credit
+- [x] CDS pricing with a constant hazard rate
+- [x] Default probability curve bootstrapped from CDS spreads
+- [ ] CS01 and jump-to-default
+- [ ] Credit-Linked Note: decomposition and par coupon
+- [ ] Issuer credit spread (funding) in structured product pricing
+
 
 ## Key results: autocall Phoenix
 
@@ -63,24 +86,6 @@ The `pytest` suite checks:
   a note that is never called and never protected is worth its nominal, like the index itself
 - the coupon solver against the closed form, and that the value increases with the coupon
 
-## Roadmap
-
-### Equity
-- [x] Monte Carlo engine validated against Black-Scholes
-- [x] Reverse Convertible: Monte Carlo vs closed form, par coupon
-- [x] Autocall Phoenix and par coupon solver
-- [x] Walkthrough notebook: par coupon sensitivities and product life statistics
-- [ ] Greeks (delta, gamma, vega) with common random numbers, behaviour near the barrier
-- [ ] Interactive Streamlit app (live demo)
-- [ ] Worst-of on 3 underlyings and the effect of correlation on the coupon
-- [ ] Effect of skew, local volatility and dividends on autocall pricing
-
-### Credit
-- [ ] CDS pricing with a constant hazard rate
-- [ ] Default probability curve bootstrapped from CDS spreads
-- [ ] Credit-Linked Note: decomposition and par coupon
-- [ ] Issuer credit spread (funding) in structured product pricing
-
 ## Project structure
     src/pricer/
         common/solver.py      generic par coupon solver
@@ -91,9 +96,11 @@ The `pytest` suite checks:
             monte_carlo.py    generic Monte Carlo pricer, autocall valuation
             solver.py         autocall par coupon
         credit/
-            cds.py            CDS pricing with a hazard rate model (in progress)
+            cds.py            CDS pricing and hazard curve bootstrap
     tests/equity/             pytest suite (see Validation)
+    tests/credit/             CDS and bootstrap tests
     notebooks/equity/         autocall walkthrough
+    notebooks/credit/         CDS walkthrough
     docs/equity/              figures used in this README
 
 ## Quickstart
