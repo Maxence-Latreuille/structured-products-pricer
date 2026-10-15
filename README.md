@@ -4,8 +4,10 @@ A Python toolkit for pricing structured products the way a structuring desk does
 payoff into simpler pieces, price it, solve for the coupon, then study how the product behaves.
 
 The equity module covers vanilla options, the Reverse Convertible and the autocall Phoenix.
-It is on hold while I work on the credit module (CDS pricing, a default probability curve and
-the Credit-Linked Note); its remaining items are in the roadmap.
+It is on hold while I extend the pricer to credit: CDS pricing, a default probability curve
+bootstrapped from market spreads, and the Credit-Linked Note. The next step is a basket of
+names where the correlation between defaults drives the price. The remaining items are in the
+roadmap.
 
 The [autocall walkthrough notebook](notebooks/equity/autocall_walkthrough.ipynb) goes through
 the product, the pricing method, the validation and the results.
@@ -29,7 +31,10 @@ spreads to a hazard rate curve, survival probabilities, the two CDS legs and the
 |---|---|---|
 | Credit default swap | Piecewise-constant hazard rate, premium and protection legs, par spread, upfront, value | Done |
 | Default probability curve | Hazard rates bootstrapped from market CDS spreads | Done |
-| Credit-Linked Note | Bond plus a CDS sold on a reference entity, par coupon | In Progess |
+| Risk measures | CS01 by bumping the spreads and re-bootstrapping, jump-to-default | Done |
+| Credit-Linked Note | Bond plus a CDS sold on a reference entity, value and par coupon | Done |
+| First-to-default basket | One-factor Gaussian copula, Monte Carlo with a semi-analytic check | Planned |
+| Index tranches | Portfolio loss distribution, expected tranche loss, tranche spread | Planned |
 
 ## Roadmap
 
@@ -47,9 +52,11 @@ spreads to a hazard rate curve, survival probabilities, the two CDS legs and the
 - [x] CDS pricing with a constant hazard rate
 - [x] Default probability curve bootstrapped from CDS spreads
 - [x] CS01 and jump-to-default
-- [ ] Credit-Linked Note: decomposition and par coupon
-- [ ] Issuer credit spread (funding) in structured product pricing
-
+- [x] Credit-Linked Note: value and par coupon
+- [ ] First-to-default basket with a Gaussian copula, and the FTD spread as a function of correlation
+- [ ] Loss distribution of a portfolio and the expected loss of a tranche
+- [ ] Credit-Linked Note on a bootstrapped curve, with the issuer funding spread
+- [ ] Phoenix with the issuer credit spread
 
 ## Key results: CDS
 
@@ -65,6 +72,21 @@ The examples use a 5-year CDS on a notional of €10m, market spreads of 80, 120
   more than 1,300 times the CS01.
 - Simplifications: flat discount rate, default assumed in the middle of each period, constant
   recovery, no day-count conventions.
+
+## Key results: Credit-Linked Note
+
+The examples use a 5-year note, a flat hazard rate and discount rate of 2.5%, R = 40%. The
+note pays no accrued coupon when the reference entity defaults.
+
+- With annual coupons the par coupon is 4.10%, against 2.53% for a risk-free bond. The gap is
+  157 bp, close to the 152 bp par spread of a CDS on the same entity.
+- With quarterly coupons the gap is 152 bp against a CDS par spread of 150 bp. The CDS is
+  slightly cheaper because it pays the accrued premium and the note does not.
+- A note paying 3.4% is worth 97.0% of the nominal, so the investor would ask for a higher
+  coupon or a lower issue price.
+- A hazard rate of 4% instead of 2.5% raises the annual par coupon from 4.10% to 5.06%.
+- Simplifications: the issuer is assumed default-free, so the funding spread of the issuing
+  bank is not modelled.
 
 ## Key results: autocall Phoenix
 
@@ -100,6 +122,11 @@ The `pytest` suite checks:
 - two limit cases: a note that is never called and always protected is a zero-coupon bond, and
   a note that is never called and never protected is worth its nominal, like the index itself
 - the coupon solver against the closed form, and that the value increases with the coupon
+- the CDS legs against hand-computed values and against the 123 bp example in Hull's textbook
+- the hazard curve bootstrap with a round trip: repricing the input CDS returns the input spreads
+- the CS01 by bumping against the RPV01 shortcut, and the jump-to-default
+- the Credit-Linked Note par coupon against a hand calculation, and that it equals the risk-free
+  par rate when the hazard rate is zero
 
 ## Project structure
     src/pricer/
@@ -111,9 +138,10 @@ The `pytest` suite checks:
             monte_carlo.py    generic Monte Carlo pricer, autocall valuation
             solver.py         autocall par coupon
         credit/
-            cds.py            CDS pricing and hazard curve bootstrap
+            cds.py            CDS pricing, hazard curve bootstrap, CS01, jump-to-default
+            cln.py            Credit-Linked Note value and par coupon
     tests/equity/             pytest suite (see Validation)
-    tests/credit/             CDS and bootstrap tests
+    tests/credit/             CDS, bootstrap and CLN tests
     notebooks/equity/         autocall walkthrough
     notebooks/credit/         CDS walkthrough
     docs/equity/              figures used in this README
